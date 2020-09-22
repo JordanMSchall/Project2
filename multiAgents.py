@@ -80,6 +80,10 @@ class ReflexAgent(Agent):
         # Highest: If a ghost is right on top of us
         #By combining these four we get the currentScore
         currentScore = 0
+        timeScore = 0
+
+        if min(newScaredTimes) > 0:
+            timeScore = min(newScaredTimes) * -10
 
         #Find the distance to the nearest ghost and initialie ghost values
         ghostPositions = []
@@ -91,8 +95,8 @@ class ReflexAgent(Agent):
         #Set the ghost score
         #if the ghost will be on top of pacman, RUN AWAY
         if (minGhostPosition == 0):
-            #Highest - Set to the highest possible value in the code to denote highest significance
-            ghostScore = 1000000
+            #Highest - Set to the lowest possible value in the code to denote highest significance
+            return -1000000
         #else set the ghost score to the minimum ghost position
         else:
             #Lowest - Nothing is changed about it to denote Lowest in the hierarchy
@@ -118,8 +122,9 @@ class ReflexAgent(Agent):
         #enough to offset subtracting the ghostScore
         foodScore -= 1000 * foodSize
 
-        #(Negative food score) - (Negative ghostScore) = Negative current score (most of the time), positive when ghostScore is massive
-        currentScore = foodScore - ghostScore
+        # (Negative timeScore) + (Negative food score) - (Negative ghostScore) = Negative current score (most of the time), positive when ghostScore is massive
+        #Don't know exactly why, but 10/ghostScore resulted in a better final result
+        currentScore = timeScore + foodScore - 10/ghostScore
         return currentScore
 
 def scoreEvaluationFunction(currentGameState):
@@ -191,49 +196,50 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     """
       Your minimax agentwith alpha-beta pruning (question 3)
     """
-
+    
     def getAction(self, gameState):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
 
-        def AlphaBetaValue(gameState,position,depth,alpha,beta):
+        
+        def alphaBeta(gameState,agent,depth, alpha, beta):
             v = []
 
             # Terminate state #
-            if not gameState.getLegalActions(position) or depth == self.depth:
+            if not gameState.getLegalActions(agent) or depth == self.depth:
                 return self.evaluationFunction(gameState),0
 
             # All ghosts have finised one round: increase depth #
-            if position == gameState.getNumAgents() - 1:
+            if agent == gameState.getNumAgents() - 1:
                 depth += 1
                 nextAgent = self.index
             else:
-                nextAgent = position + 1
+                nextAgent = agent + 1
 
-            for action in gameState.getLegalActions(position):
+            for action in gameState.getLegalActions(agent):
                 if v == []:
-                    successor = AlphaBetaValue(gameState.generateSuccessor(position, action), nextAgent, depth, alpha, beta)
+                    successor = alphaBeta(gameState.generateSuccessor(agent, action), nextAgent, depth, alpha, beta)
 
                     v.append(successor[0])
                     v.append(action)
 
-                    if position == self.index:
+                    if agent == self.index:
                         alpha = max(v[0], alpha)
                     else:
                         beta = min(v[0], beta)
                 else:
                     #max-value method from lecture
-                    if v[0] > beta and position == self.index:
+                    if v[0] > beta and agent == self.index:
                         return v
                     #min-value method from lecture
-                    elif v[0] < alpha and position != self.index:
+                    elif v[0] < alpha and agent != self.index:
                         return v
                     
-                    successor = AlphaBetaValue(gameState.generateSuccessor(position, action), nextAgent, depth, alpha, beta)
+                    successor = alphaBeta(gameState.generateSuccessor(agent, action), nextAgent, depth, alpha, beta)
 
                     #current position equals pacman's original position
-                    if position == self.index:
+                    if agent == self.index:
                         if successor[0] > v[0]:
                             v[0] = successor[0]
                             v[1] = action
@@ -246,9 +252,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                             #double checking the mind beta value
                             beta = min(v[0],beta)
             return v
-
         # Call AB with initial depth = 0 and -inf and +inf (a,b) values
-        return AlphaBetaValue(gameState,self.index,0,-float("inf"),float("inf"))[1]
+        return alphaBeta(gameState,self.index,0, -float("inf"), float("inf"))[1]
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
