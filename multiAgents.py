@@ -226,14 +226,15 @@ class MinimaxAgent(MultiAgentSearchAgent):
         # Again get all of the successor states for each action
         sucessorStates = []
         for action in legalPacmanActions:
-            sucessorStates.append((action, gameState.generateSuccessor(0, action)))
+            sucessorStates.append(gameState.generateSuccessor(0, action))
 
-        # find the maximum minimax value of the successor states agents
+        # Find the max value for each successor state, in this case
+        # we will always be root so will not need to evaluate bagentIdx
         # we want to initialize this return value as unachievable low so it is
         # set in first comparison
         returnValue = -10000.0
-        for successor in sucessorStates:
-            returnValue = max(returnValue, self.minimax(successor[1], 1, currentDepth))
+        for state in sucessorStates:
+            returnValue = max(returnValue, self.minimax(state, 1, currentDepth))
         return returnValue
 
 
@@ -244,18 +245,22 @@ class MinimaxAgent(MultiAgentSearchAgent):
         # Again get all of the successor states for each action
         sucessorStates = []
         for action in legalActions:
-            sucessorStates.append((action, gameState.generateSuccessor(agentIdx, action)))
+            sucessorStates.append(gameState.generateSuccessor(agentIdx, action))
 
 
-        # find the minimum minimax value of the successor states agents or increment depth
-        # we want to initialize this return value as unachievable high so it is
-        # set in first comparison as well
+        # Find the minimum value of the state for successors
+        # we want to initialize this return value as an unachievable high
+        # so it is set in first state comparison in order to give us the min
+        # evaluated state
         returnValue = 10000.1
-        for successor in sucessorStates:
+        for state in sucessorStates:
+            # If we are at the last agent we move to the next depth
+            # or we evaluate the next agent
             if agentIdx == gameState.getNumAgents() - 1:
-                returnValue = min(returnValue, self.minimax(successor[1], 0, currentDepth + 1))
+                # entry[1] simply grabs the state
+                returnValue = min(returnValue, self.minimax(state, 0, currentDepth + 1))
             else:
-                returnValue = min(returnValue, self.minimax(successor[1], agentIdx + 1, currentDepth))
+                returnValue = min(returnValue, self.minimax(state, agentIdx + 1, currentDepth))
         return returnValue
 
 
