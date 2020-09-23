@@ -185,8 +185,81 @@ class MinimaxAgent(MultiAgentSearchAgent):
         gameState.isLose():
         Returns whether or not the game state is a losing state
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        # get available actions for pacman in this state
+        legalPacmanActions = gameState.getLegalActions(0)
+
+        # get successor states for each of those actions
+        sucessorStates = []
+        for action in legalPacmanActions:
+            sucessorStates.append((action, gameState.generateSuccessor(0, action)))
+
+        # set default best action value, we want this to be an unachievable low number
+        bestAction = ("Left", -1000000)
+
+
+        # for each of those successor states we need it's value
+        for state in sucessorStates:
+            actionValue = self.minimax(state[1], 1, 0)
+            if actionValue > bestAction[1]:
+                bestAction = (state[0], actionValue)
+        return bestAction[0]
+
+    def minimax(self, gameState, agentIndex, currentDepth):
+        """Get the minimax value of this state"""
+        # If the gameState is a terminal state then we can find it's score
+        if gameState.isWin() or gameState.isLose() or currentDepth == self.depth:
+            return self.evaluationFunction(gameState)
+
+        # If the agentIdx is pacman we need it's maximum value of the agent states
+        if agentIndex == 0:
+            return self.maxStateValue(gameState, currentDepth)
+        # If it's not pacman then we need it's minimum values
+        else:
+            return self.minStateValue(gameState, agentIndex, currentDepth)
+
+
+    def maxStateValue(self, gameState, currentDepth):
+        # Again get all legalActions in the given gameState for the Agent ( always pacman )
+        legalPacmanActions = gameState.getLegalActions(0)
+
+        # Again get all of the successor states for each action
+        sucessorStates = []
+        for action in legalPacmanActions:
+            sucessorStates.append((action, gameState.generateSuccessor(0, action)))
+
+        # find the maximum minimax value of the successor states agents
+        # we want to initialize this return value as unachievable low so it is
+        # set in first comparison
+        returnValue = -10000.0
+        for successor in sucessorStates:
+            returnValue = max(returnValue, self.minimax(successor[1], 1, currentDepth))
+        return returnValue
+
+
+    def minStateValue(self, gameState, agentIdx, currentDepth):
+        # Again get all legalActions in the given gameState for the Agent ( always pacman )
+        legalActions = gameState.getLegalActions(agentIdx)
+
+        # Again get all of the successor states for each action
+        sucessorStates = []
+        for action in legalActions:
+            sucessorStates.append((action, gameState.generateSuccessor(agentIdx, action)))
+
+
+        # find the minimum minimax value of the successor states agents or increment depth
+        # we want to initialize this return value as unachievable high so it is
+        # set in first comparison as well
+        returnValue = 10000.1
+        for successor in sucessorStates:
+            if agentIdx == gameState.getNumAgents() - 1:
+                returnValue = min(returnValue, self.minimax(successor[1], 0, currentDepth + 1))
+            else:
+                returnValue = min(returnValue, self.minimax(successor[1], agentIdx + 1, currentDepth))
+        return returnValue
+
+
+
 
 #The below section utilizes both the pseudocode from the lecture and ideas from:
 #https://stackabuse.com/minimax-and-alpha-beta-pruning-in-python/ and
