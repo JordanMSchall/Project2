@@ -10,7 +10,7 @@
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
-
+from operator import itemgetter
 
 from util import manhattanDistance
 from game import Directions
@@ -195,7 +195,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
             sucessorStates.append((action, gameState.generateSuccessor(0, action)))
 
         # set default best action value, we want this to be an unachievable low number
-        bestAction = ("Left", -1000000)
+        bestAction = (None, -1000000)
 
 
         # for each of those successor states we need it's value
@@ -333,7 +333,6 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
     """
-
     def getAction(self, gameState):
         """
         Returns the expectimax action using self.depth and self.evaluationFunction
@@ -341,18 +340,61 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         All ghosts should be modeled as choosing uniformly at random from their
         legal moves.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Using same setup as minimax agent
+        legalPacmanActions = gameState.getLegalActions(0)
+
+        # get expectimax values for each action so we can return the max evaluated action
+        sucessorStateValues = []
+        for action in legalPacmanActions:
+            sucessorStateValues.append((action, self.expectimax(gameState.generateSuccessor(0, action),1,1)))
+
+        #print(max(sucessorStateValues, key = itemgetter(1))[0])
+        return max(sucessorStateValues, key = itemgetter(1))[0]
+
+    def expectimax(self, gameState, agentIdx, currentDepth):
+        """Get the expectimax value of this state"""
+        # if we are on the last agent we can check our depth
+        # to ensure we are the base of the tree
+        if agentIdx == gameState.getNumAgents() :
+            #Check if we are at depth or move to next depth
+            if currentDepth == self.depth:
+                return self.evaluationFunction(gameState)
+            else:
+                #Evaluate next depth
+                return self.expectimax(gameState, 0, currentDepth + 1)
+        else:
+            #If this is not the last agent we need to recursively call our function
+            legalActions = gameState.getLegalActions(agentIdx)
+
+            # If no moves are left we are at a terminal state
+            if not legalActions:
+                return self.evaluationFunction(gameState)
+
+            # for each action evaluate the expectimax values of left agents
+            # since we are not choosing an action in this step we do not need a tuple
+            sucessorStateValues =[]
+            for action in legalActions:
+                sucessorStateValues.append(self.expectimax(gameState.generateSuccessor(agentIdx, action), agentIdx + 1, currentDepth))
+
+            if agentIdx == 0:
+            # If we are pacman we want the max ( root of tree, maximizer )
+                return max(sucessorStateValues)
+            # If it's not pacman then we need it's expecti values ( average )
+            else:
+                leafAvg = sum(sucessorStateValues) + 0.0 / len(sucessorStateValues) + 0.0
+                return leafAvg
+
+
 
 def betterEvaluationFunction(currentGameState):
     """
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
 
-    DESCRIPTION: <write something here so we know what you did>
+    DESCRIPTION:
     """
-    "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
+
 
 # Abbreviation
 better = betterEvaluationFunction
