@@ -189,21 +189,30 @@ class MinimaxAgent(MultiAgentSearchAgent):
         # get available actions for pacman in this state
         legalPacmanActions = gameState.getLegalActions(0)
 
+        # cleaned up this logic for simplification
         # get successor states for each of those actions
-        sucessorStates = []
+        # sucessorStates = []
+        # for action in legalPacmanActions:
+        #     sucessorStates.append((action, gameState.generateSuccessor(0, action)))
+        #
+        # # set default best action value, we want this to be an unachievable low number
+        # bestAction = (None, -1000000)
+        #
+        #
+        # # for each of those successor states we need it's value
+        # for state in sucessorStates:
+        #     actionValue = self.minimax(state[1], 1, 0)
+        #     if actionValue > bestAction[1]:n
+        #         bestAction = (state[0], actionValue)
+        # return bestAction[0]
+                # sucessorStates = []
+
+        sucessorStateValues = []
         for action in legalPacmanActions:
-            sucessorStates.append((action, gameState.generateSuccessor(0, action)))
+            sucessorStateValues.append((action, self.minimax(gameState.generateSuccessor(0, action),1,0)))
 
-        # set default best action value, we want this to be an unachievable low number
-        bestAction = (None, -1000000)
-
-
-        # for each of those successor states we need it's value
-        for state in sucessorStates:
-            actionValue = self.minimax(state[1], 1, 0)
-            if actionValue > bestAction[1]:
-                bestAction = (state[0], actionValue)
-        return bestAction[0]
+        #print(max(sucessorStateValues, key = itemgetter(1))[0])
+        return max(sucessorStateValues, key = itemgetter(1))[0]
 
     def minimax(self, gameState, agentIndex, currentDepth):
         """Get the minimax value of this state"""
