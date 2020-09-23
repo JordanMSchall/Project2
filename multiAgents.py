@@ -206,17 +206,18 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         def alphaBeta(gameState,agent,depth, alpha, beta):
             v = []
 
-            # Terminate state #
+            #Terminate state
             if not gameState.getLegalActions(agent) or depth == self.depth:
                 return self.evaluationFunction(gameState),0
 
-            # All ghosts have finised one round: increase depth #
+            #Go to the next depth
             if agent == gameState.getNumAgents() - 1:
                 depth += 1
                 nextAgent = self.index
             else:
                 nextAgent = agent + 1
 
+            #For every direction's successor...
             for action in gameState.getLegalActions(agent):
                 if v == []:
                     successor = alphaBeta(gameState.generateSuccessor(agent, action), nextAgent, depth, alpha, beta)
@@ -238,7 +239,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                     
                     successor = alphaBeta(gameState.generateSuccessor(agent, action), nextAgent, depth, alpha, beta)
 
-                    #current position equals pacman's original position
+                    #current agent is pacman
                     if agent == self.index:
                         if successor[0] > v[0]:
                             v[0] = successor[0]
@@ -249,10 +250,10 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                         if successor[0] < v[0]:
                             v[0] = successor[0]
                             v[1] = action
-                            #double checking the mind beta value
+                            #double checking the min beta value
                             beta = min(v[0],beta)
             return v
-        # Call AB with initial depth = 0 and -inf and +inf (a,b) values
+        # Call alphaBeta with initial values
         return alphaBeta(gameState,self.index,0, -float("inf"), float("inf"))[1]
 
 
