@@ -10,6 +10,10 @@
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/chadknowlton-working
 from operator import itemgetter
 
 from util import manhattanDistance
@@ -70,6 +74,7 @@ class ReflexAgent(Agent):
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood()
+        numFood = successorGameState.getNumFood()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
@@ -104,14 +109,12 @@ class ReflexAgent(Agent):
         
         #Set the food score
         foodPositions = []
-        foodSize = 0
         foodScore = 0
         for food in newFood.asList():
             foodPositions.append(manhattanDistance(newPos, food))
-            foodSize += 1
 
         #IF there is food remaining, find the closest one
-        if foodSize > 0:
+        if numFood > 0:
             foodScore = min(foodPositions)
 
         #Low - Multiplying this value by -2 makes it higher in priority than the ghostPosition by 2
@@ -120,7 +123,7 @@ class ReflexAgent(Agent):
         foodScore *= -2
         #High - Multiplying this value by 1000 makes it higher in priority than the foodPosition by a lot and
         #enough to offset subtracting the ghostScore
-        foodScore -= 1000 * foodSize
+        foodScore -= 1000 * numFood
 
         # (Negative timeScore) + (Negative food score) - (Negative ghostScore) = Negative current score (most of the time), positive when ghostScore is massive
         #Don't know exactly why, but 10/ghostScore resulted in a better final result
@@ -185,7 +188,10 @@ class MinimaxAgent(MultiAgentSearchAgent):
         gameState.isLose():
         Returns whether or not the game state is a losing state
         """
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/chadknowlton-working
         # get available actions for pacman in this state
         legalPacmanActions = gameState.getLegalActions(0)
 
@@ -271,9 +277,12 @@ class MinimaxAgent(MultiAgentSearchAgent):
             else:
                 returnValue = min(returnValue, self.minimax(state, agentIdx + 1, currentDepth))
         return returnValue
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> origin/chadknowlton-working
 
 #The below section utilizes both the pseudocode from the lecture and ideas from:
 #https://stackabuse.com/minimax-and-alpha-beta-pruning-in-python/ and
@@ -293,17 +302,18 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         def alphaBeta(gameState,agent,depth, alpha, beta):
             v = []
 
-            # Terminate state #
+            #Terminate state
             if not gameState.getLegalActions(agent) or depth == self.depth:
                 return self.evaluationFunction(gameState),0
 
-            # All ghosts have finised one round: increase depth #
+            #Go to the next depth
             if agent == gameState.getNumAgents() - 1:
                 depth += 1
                 nextAgent = self.index
             else:
                 nextAgent = agent + 1
 
+            #For every direction's successor...
             for action in gameState.getLegalActions(agent):
                 if v == []:
                     successor = alphaBeta(gameState.generateSuccessor(agent, action), nextAgent, depth, alpha, beta)
@@ -325,7 +335,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                     
                     successor = alphaBeta(gameState.generateSuccessor(agent, action), nextAgent, depth, alpha, beta)
 
-                    #current position equals pacman's original position
+                    #current agent is pacman
                     if agent == self.index:
                         if successor[0] > v[0]:
                             v[0] = successor[0]
@@ -336,10 +346,10 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                         if successor[0] < v[0]:
                             v[0] = successor[0]
                             v[1] = action
-                            #double checking the mind beta value
+                            #double checking the min beta value
                             beta = min(v[0],beta)
             return v
-        # Call AB with initial depth = 0 and -inf and +inf (a,b) values
+        # Call alphaBeta with initial values
         return alphaBeta(gameState,self.index,0, -float("inf"), float("inf"))[1]
 
 
@@ -350,7 +360,6 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     def getAction(self, gameState):
         """
         Returns the expectimax action using self.depth and self.evaluationFunction
-
         All ghosts should be modeled as choosing uniformly at random from their
         legal moves.
         """
@@ -398,16 +407,65 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
                 leafAvg = sum(sucessorStateValues) + 0.0 / len(sucessorStateValues) + 0.0
                 return leafAvg
 
-
-
 def betterEvaluationFunction(currentGameState):
     """
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
+    DESCRIPTION: The following is an evaluation function based on the prior evaluation function
+    but takes more into account the ghostTimers. 
 
-    DESCRIPTION:
+    This still utilizes the same score hierarchy principle as the original evaluationFunction.
+    However, the timerScore of +1000000 is now at the highest along with the ghostPosition <= 1
     """
-    util.raiseNotDefined()
+    currentScore = 0
+
+    #Initialize needed values
+    pacmanPosition = currentGameState.getPacmanPosition()
+    currentGhostStates = currentGameState.getGhostStates()
+    currentGhostPositions = []
+    currentGhostTimers = []
+    currentScore = currentGameState.getScore()
+    foodList = currentGameState.getFood().asList()
+    numFood = currentGameState.getNumFood()
+
+    for ghost in currentGhostStates:
+        currentGhostPositions.append(ghost.getPosition())
+        currentGhostTimers.append(ghost.scaredTimer)
+
+    #Getting the closest ghost position
+    ghostPos = []
+    for position in currentGhostPositions:
+        ghostPos.append(manhattanDistance(position, pacmanPosition))
+        #If a ghost is near, but power is active, stay
+        if min(currentGhostTimers) >= 1 and manhattanDistance(position, pacmanPosition) <= 1:
+            return 1000000
+        #If a ghost is near, but power is not active, MOVE!
+        if min(currentGhostTimers) == 0 and manhattanDistance(position, pacmanPosition) <= 1:
+            return -1000000
+    ghostScore = min(ghostPos)
+
+    #Set the food score
+    foodPositions = []
+    foodScore = 0
+    for food in foodList:
+        foodPositions.append(manhattanDistance(pacmanPosition, food))
+
+    #IF there is food remaining, find the closest one
+    if numFood > 0:
+        foodScore = min(foodPositions)
+
+    foodScore *= -2
+    foodScore -= 1000 * numFood
+
+    #If the power timer is running, the current score adds the score of the closesst ghost
+    #This increases the odds of staying at the current position
+    if (min(currentGhostTimers) > 0):
+        currentScore = foodScore + 1000 / ghostScore
+    #Otherwise score is normal, and get away if ghost is closer
+    else:
+        currentScore = foodScore - 10/ghostScore
+
+    return currentScore
 
 
 # Abbreviation
