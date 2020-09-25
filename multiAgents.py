@@ -10,10 +10,6 @@
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/chadknowlton-working
 from operator import itemgetter
 
 from util import manhattanDistance
@@ -188,10 +184,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
         gameState.isLose():
         Returns whether or not the game state is a losing state
         """
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/chadknowlton-working
         # get available actions for pacman in this state
         legalPacmanActions = gameState.getLegalActions(0)
 
@@ -277,12 +269,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
             else:
                 returnValue = min(returnValue, self.minimax(state, agentIdx + 1, currentDepth))
         return returnValue
-<<<<<<< HEAD
-
-
-
-=======
->>>>>>> origin/chadknowlton-working
 
 #The below section utilizes both the pseudocode from the lecture and ideas from:
 #https://stackabuse.com/minimax-and-alpha-beta-pruning-in-python/ and
